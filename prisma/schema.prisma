@@ -1,0 +1,110 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Todo {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  text      String
+  completed Boolean
+}
+
+// User model for regular users and car brand owners
+model User {
+  id                Int                @id @default(autoincrement())
+  firstName         String
+  lastName          String
+  email             String             @unique
+  password          String
+  status            String
+  userName          String             @unique
+  phoneNumber       String             @unique
+  type              String             // "owner" or "buyer"
+  brands            CarBrand[]         // Relationship to CarBrand
+  messagesSent      Message[]          @relation("UserMessagesSent")
+  messagesReceived  Message[]          @relation("UserMessagesReceived")
+  notifications     Notification[]     // Notifications related to the user
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+}
+
+// CarBrand model for different car brands
+model CarBrand {
+  id                Int                @id @default(autoincrement())
+  name              String
+  description       String
+  phoneNumber       String
+  image             String             // This would be the file path or URL
+  ownerId           Int
+  owner             User               @relation(fields: [ownerId], references: [id])
+  spareParts        SparePart[]
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+}
+
+// SparePart model for spare parts of car brands
+model SparePart {
+  id                Int                @id @default(autoincrement())
+  name              String
+  description       String
+  price             Float
+  image             String             // This would be the file path or URL
+  carBrandId        Int
+  carBrand          CarBrand           @relation(fields: [carBrandId], references: [id])
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+}
+
+// Message model for messages sent between users
+model Message {
+  id                Int      @id @default(autoincrement())
+  imageUrl          String?  // Optional field for image URL
+  text              String?  // Optional field for text
+  senderId          Int
+  receiverId        Int
+  senderUsername    String
+  receiverUsername  String
+  sender            User     @relation("UserMessagesSent", fields: [senderId], references: [id])
+  receiver          User     @relation("UserMessagesReceived", fields: [receiverId], references: [id])
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+// Notification model for user notifications
+model Notification {
+  id                Int                @id @default(autoincrement())
+  userId            Int
+  content           String
+  read              Boolean            @default(false)
+  user              User               @relation(fields: [userId], references: [id])
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+}
+
+// Advertisement model for advertising purposes
+model Advertisement {
+  id                Int                @id @default(autoincrement())
+  name              String
+  description       String
+  image             String             // This would be the file path or URL
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+}
+
+// Rules model for rules and regulations
+model Rules {
+  id                Int                @id @default(autoincrement())
+  name              String
+  description       String
+  image             String             // This would be the file path or URL
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+}
